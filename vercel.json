@@ -1,0 +1,7 @@
+{
+  "buildCommand": "echo 'Building HIRAM...'",
+  "outputDirectory": ".",
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
