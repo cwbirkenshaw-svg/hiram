@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIRAM - Voice AI Command Center</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #f0f0f0;
+            font-family: 'JetBrains Mono', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .header { text-align: center; }
+        .logo { font-size: 32px; font-weight: 700; color: #00d9ff; text-shadow: 0 0 15px #00d9ff; margin-bottom: 5px; }
+        .tagline { font-size: 11px; color: #ff006e; letter-spacing: 2px; text-transform: uppercase; }
+        canvas { width: 280px; height: 280px; filter: drop-shadow(0 0 30px rgba(0, 217, 255, 0.5)); }
+        .controls { width: 100%; display: flex; gap: 10px; }
+        input, button { padding: 12px; font-family: inherit; border-radius: 4px; border: 2px solid #00ff88; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        input { flex: 1; background: rgba(0, 217, 255, 0.05); color: #00d9ff; border-color: #00d9ff; }
+        input::placeholder { color: rgba(0, 217, 255, 0.3); }
+        button { background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 217, 255, 0.1)); color: #00ff88; cursor: pointer; }
+        button:active { background: #00ff88; color: #000; }
+        .response { width: 100%; min-height: 60px; padding: 15px; background: rgba(0, 217, 255, 0.05); border: 2px solid #00d9ff; border-radius: 6px; text-align: center; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1.5; }
+        .settings { width: 100%; background: rgba(0, 217, 255, 0.1); border: 2px solid #00d9ff; border-radius: 8px; padding: 20px; display: none; }
+        .settings.show { display: block; }
+        .settings-item { margin-bottom: 15px; }
+        .label { font-size: 10px; color: #00ff88; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
+        .status { font-size: 11px; margin-top: 8px; padding: 8px; border-radius: 4px; text-align: center; }
+        .status.success { background: rgba(0, 255, 136, 0.2); color: #00ff88; border: 1px solid #00ff88; }
+        .status.error { background: rgba(255, 68, 68, 0.2); color: #ff4444; border: 1px solid #ff4444; }
+        .footer { font-size: 9px; color: #00d9ff; opacity: 0.6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">⬢ HIRAM</div>
+            <div class="tagline">Voice AI Command Center</div>
+        </div>
+
+        <canvas id="canvas" width="280" height="280"></canvas>
+
+        <div class="controls">
+            <input type="text" id="cmd" placeholder="Type command..." autofocus>
+            <button onclick="send()">Send</button>
+        </div>
+
+        <div class="response" id="resp">Ready to listen</div>
+
+        <button onclick="document.getElementById('settings').classList.toggle('show')" style="width: 100%;">⚙️ Settings</button>
+
+        <div class="settings" id="settings">
+            <div class="settings-item">
+                <label class="label">🎙️ Eleven Labs API Key</label>
+                <input type="password" id="key" placeholder="Paste your API key here...">
+                <button onclick="saveKey()" style="width: 100%; margin-top: 10px;">Save API Key</button>
+                <div class="status" id="status"></div>
+            </div>
+        </div>
+
+        <div class="footer">HIRAM v3.4 | CEO Command Center | birkenshaw.net</div>
+    </div>
+
+    <script>
+        let apiKey = localStorage.getItem('elevenLabsKey') || '';
+        if (apiKey) document.getElementById('key').value = apiKey;
+
+        function saveKey() {
+            const val = document.getElementById('key').value.trim();
+            if (!val)
